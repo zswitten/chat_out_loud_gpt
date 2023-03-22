@@ -71,9 +71,9 @@ def record(file_name, silence_limit=1, silence_threshold=400,
 
 ### Setting up TTS ###
 
-openai.api_key = "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"
-charactr_client_key = "twcEn5ZPmr9pujsrhDK8eNbw8Qu8b2y5"
-charactr_api_key = "7611R1Hal9xManXDT7ELhBs7gLi2yiXn"
+openai.api_key = os.environ['OPENAI_API_KEY']
+charactr_client_key = os.environ['CHARACTR_CLIENT_KEY']
+charactr_api_key = os.environ['CHARACTR_API_KEY']
 
 class CharactrAPI:
     VOICES_URL = 'https://api.charactr.com/v1/tts/voices'
@@ -167,7 +167,7 @@ output_path = 'speech_output.wav'
 
 system_message = """
 You are famous rapper Snoop Dogg. You answer questions lacksadaisically, like you're
-too cool to care. You speak with an attitude. 
+too cool to care. You speak with a lot of attitude. 
 """
 
 ### Let's go ###
