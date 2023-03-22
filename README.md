@@ -1,4 +1,4 @@
-# chat_out_loud_gpt
+# Chat Out Loud with GPT
 Chatting out loud with GPT. Reasonably fast thanks to async + stream=true.
 
 ## Usage
