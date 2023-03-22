@@ -1,5 +1,5 @@
 # Chat Out Loud with GPT
-Chatting out loud with GPT. Reasonably fast thanks to async + stream=true.
+Title says it all. No typing required. Reasonably fast thanks to async + stream=true. 
 
 ## Usage
 ```
@@ -11,7 +11,7 @@ python chat_out_loud.py
 ```
 
 ## Mods
-- By default it pretends to be Snoop Dogg. Feel free to change the system message to your liking.
+- By default it pretends to be Snoop Dogg. Feel free to change the system message to your liking. Or to change the GPT model from 3.5 to 4.
 
 - You may need to tweak the silence_threshold in the `record` function depending on the sensitivity of your mic and the environment you're in. The higher it is, the louder you need to talk, but if it's too low the background noise may keep it from ever turning off.
 
