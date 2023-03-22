@@ -1,5 +1,5 @@
 # chat_out_loud_gpt
-Chatting out loud with GPT. Relatively non-laggy.
+Chatting out loud with GPT. Reasonably fast thanks to async + stream=true.
 
 ## Usage
 ```
