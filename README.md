@@ -3,6 +3,7 @@ Hands-free companionship on demand. Reasonably non-laggy thanks to async + strea
 
 ## Usage
 ```
+brew install portaudio
 export OPENAI_API_KEY={your key}
 export CHARACTR_CLIENT_KEY={your key}
 export CHARACTR_API_KEY={your key}
