@@ -1,5 +1,5 @@
 # Chat Out Loud with GPT
-Title says it all. No typing required. Reasonably fast thanks to async + stream=true. 
+Hands-free companionship on demand. Reasonably non-laggy thanks to async + stream=true. 
 
 ## Usage
 ```
@@ -17,8 +17,14 @@ python chat_out_loud.py
 
 - You can choose different voices from charactr (throw a breakpoint and call `charactr_api.get_voices()` to see available, or swap in a different TTS system entirely if you want to clone your own voice or Snoop's voice or whatever.
 
+## How does it work?
 
-
+1. Pyaudio listens until it hears a sound, then listens until it stops hearing a sound, then writes to a file.
+2. The file is sent to [Whisper](https://openai.com/blog/introducing-chatgpt-and-whisper-apis) for transcription.
+3. The transcription is appended to the system message + any previous messages in the convo and sent to [ChatGPT](https://openai.com/blog/introducing-chatgpt-and-whisper-apis).
+4. ChatGPT's response is streamed back; when it finishes a sentence, the sentence is sent to [Charactr](https://charactr.com/) for TTS
+5. The resulting TTS plays out loud while 3 and 4 continue in the background
+6. Repeat!
 
 
 
