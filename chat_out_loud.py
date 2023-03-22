@@ -14,15 +14,13 @@ import asyncio
 ### Setting up sound recording. ###
 ### Credit https://kevinponce.com/blog/python/record-audio-on-detection/ ###
 
-def record(file_name, silence_limit=1, silence_threshold=400, 
-            chunk=1024, rate=44100, prev_audio=1):
+def record(file_name, silence_threshold, silence_limit=1,
+            chunk=1024, rate=44100, prev_audio=1, channels=1):
 
-    CHANNELS = 2
     FORMAT = pyaudio.paInt16
-    
     p = pyaudio.PyAudio()
     stream = p.open(format=p.get_format_from_width(2),
-        channels=CHANNELS,
+        channels=channels,
         rate=rate,
         input=True,
         output=False,
@@ -35,6 +33,7 @@ def record(file_name, silence_limit=1, silence_threshold=400,
     frames = []
     prev_audio = deque(maxlen=int(prev_audio * rel))
     slid_window = deque(maxlen=int(silence_limit * rel))
+
     print('Recording.')
     while listen:
         data = stream.read(chunk)
@@ -171,10 +170,32 @@ too cool to care. You speak with a lot of attitude.
 """
 
 ### Let's go ###
-async def main():
+async def main(channels=1, rate=44100, chunk_val=1024):
+    print('Calibrating silence threshold...')
+    p = pyaudio.PyAudio()
+    stream = p.open(format=p.get_format_from_width(2),
+        channels=CHANNELS,
+        rate=rate,
+        input=True,
+        output=False,
+        frames_per_buffer=chunk_val,
+    )
+    # Calibration step to determine the silence threshold based on the environment noise.
+    calibrate_secs = 3
+    silence_thresholds = []
+    for _ in range(int(rate / chunk_val * calibrate_secs)):
+        data = stream.read(chunk_val)
+        silence_thresholds.append(math.sqrt(abs(audioop.avg(data, 4))))
+
+    silence_threshold = sum(silence_thresholds)/len(silence_thresholds) * 2
+    print(f'Silence threshold set to {silence_threshold}')
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
+
     while(True):
         os.system(f"rm {input_path}")
-        record(input_path)
+        record(input_path, silence_threshold, rate=rate, chunk=chunk_val, channels=channels)
         transcription = openai.Audio.transcribe("whisper-1", open(input_path, "rb"))
         # print("Transcription:", transcription)
         conversation_history['user_messages'].append(transcription['text'])
@@ -207,6 +228,12 @@ async def main():
         conversation_history['elmo_messages'].append(text)
 
 if __name__ == '__main__':
+    CHANNELS = 1
+    rate = 44100
+    chunk = 1024
+
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    loop.run_until_complete(main(
+        channels=CHANNELS, rate=rate, chunk_val=chunk
+    ))
     loop.close()
