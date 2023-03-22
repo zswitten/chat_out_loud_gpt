@@ -1,5 +1,6 @@
 import openai
 import json
+import time
 import requests
 import os
 import wave
@@ -169,9 +170,17 @@ You are famous rapper Snoop Dogg. You answer questions lacksadaisically, like yo
 too cool to care. You speak with a lot of attitude. 
 """
 
+def countdown(n):
+    for i in range(n, 0, -1):
+        print(f"{i}...")
+        time.sleep(1)
+
 ### Let's go ###
 async def main(channels=1, rate=44100, chunk_val=1024):
-    print('Calibrating silence threshold...')
+    print('Please be silent so that we can calibrate the silence threshold of your environment...')
+    time.sleep(1)
+    countdown(3)
+    print('Calibration starting')
     p = pyaudio.PyAudio()
     stream = p.open(format=p.get_format_from_width(2),
         channels=CHANNELS,
@@ -228,7 +237,7 @@ async def main(channels=1, rate=44100, chunk_val=1024):
         conversation_history['elmo_messages'].append(text)
 
 if __name__ == '__main__':
-    CHANNELS = 1
+    CHANNELS = 1 # CHANGE THIS
     rate = 44100
     chunk = 1024
 
