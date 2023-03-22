@@ -11,7 +11,7 @@ python chat_out_loud.py
 ```
 
 ## Mods
-- Default is it pretends to be Snoop Dogg but feel free to change the system message to your liking.
+- By default it pretends to be Snoop Dogg. Feel free to change the system message to your liking.
 
 - You may need to tweak the silence_threshold in the `record` function depending on the sensitivity of your mic and the environment you're in. The higher it is, the louder you need to talk, but if it's too low the background noise may keep it from ever turning off.
 
