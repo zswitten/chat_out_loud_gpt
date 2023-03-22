@@ -25,4 +25,4 @@ python chat_out_loud.py
 
 
 #### Credits
-Written by [me](twitter.com/zswitten) and my buddy [Alec](https://github.com/thatperson42).
+Written by [me](http://twitter.com/zswitten) and my buddy [Alec](https://github.com/thatperson42).
