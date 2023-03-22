@@ -11,6 +11,7 @@ from collections import deque
 from typing import AsyncGenerator, Optional
 from playsound import playsound
 import asyncio
+import argparse
 
 ### Setting up sound recording. ###
 ### Credit https://kevinponce.com/blog/python/record-audio-on-detection/ ###
@@ -170,20 +171,13 @@ You are famous rapper Snoop Dogg. You answer questions lacksadaisically, like yo
 too cool to care. You speak with a lot of attitude. 
 """
 
-def countdown(n):
-    for i in range(n, 0, -1):
-        print(f"{i}...")
-        time.sleep(1)
-
-### Let's go ###
-async def main(channels=1, rate=44100, chunk_val=1024):
+def calibrate(channels=1, rate=44100, chunk_val=1024):
     print('Please be silent so that we can calibrate the silence threshold of your environment...')
-    time.sleep(1)
-    countdown(3)
+    time.sleep(2)
     print('Calibration starting')
     p = pyaudio.PyAudio()
     stream = p.open(format=p.get_format_from_width(2),
-        channels=CHANNELS,
+        channels=channels,
         rate=rate,
         input=True,
         output=False,
@@ -201,6 +195,13 @@ async def main(channels=1, rate=44100, chunk_val=1024):
     stream.stop_stream()
     stream.close()
     p.terminate()
+    return silence_threshold
+
+### Let's go ###
+async def main(channels=1, rate=44100, chunk_val=1024, should_calibrate=False):
+    silence_threshold = 400
+    if should_calibrate:
+        silence_threshold = calibrate(channels=1, rate=44100, chunk_val=1024)
 
     while(True):
         os.system(f"rm {input_path}")
@@ -241,8 +242,14 @@ if __name__ == '__main__':
     rate = 44100
     chunk = 1024
 
+    # Create argument parser to allow user to specify calibration flag
+    parser = argparse.ArgumentParser(description='perform calibration.')
+    parser.add_argument('--calibrate', action='store_true', default=False,
+                        help='perform calibration step')
+    args = parser.parse_args()
+
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main(
-        channels=CHANNELS, rate=rate, chunk_val=chunk
+        channels=CHANNELS, rate=rate, chunk_val=chunk, should_calibrate = args.calibrate
     ))
     loop.close()
