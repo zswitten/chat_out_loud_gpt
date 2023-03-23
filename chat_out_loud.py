@@ -1,5 +1,6 @@
 import openai
 import json
+import time
 import requests
 import os
 import wave
@@ -10,19 +11,18 @@ from collections import deque
 from typing import AsyncGenerator, Optional
 from playsound import playsound
 import asyncio
+import argparse
 
 ### Setting up sound recording. ###
 ### Credit https://kevinponce.com/blog/python/record-audio-on-detection/ ###
 
-def record(file_name, silence_limit=1, silence_threshold=400, 
-            chunk=1024, rate=44100, prev_audio=1):
+def record(file_name, silence_threshold, silence_limit=1,
+            chunk=1024, rate=44100, prev_audio=1, channels=1):
 
-    CHANNELS = 2
     FORMAT = pyaudio.paInt16
-    
     p = pyaudio.PyAudio()
     stream = p.open(format=p.get_format_from_width(2),
-        channels=CHANNELS,
+        channels=channels,
         rate=rate,
         input=True,
         output=False,
@@ -35,6 +35,7 @@ def record(file_name, silence_limit=1, silence_threshold=400,
     frames = []
     prev_audio = deque(maxlen=int(prev_audio * rel))
     slid_window = deque(maxlen=int(silence_limit * rel))
+
     print('Recording.')
     while listen:
         data = stream.read(chunk)
@@ -170,13 +171,46 @@ You are famous rapper Snoop Dogg. You answer questions lacksadaisically, like yo
 too cool to care. You speak with a lot of attitude. 
 """
 
+def calibrate(channels=1, rate=44100, chunk_val=1024):
+    print('Please be quiet for a few seconds; calibrating your base sound levels')
+    time.sleep(1)
+    print('Calibration starting')
+    p = pyaudio.PyAudio()
+    stream = p.open(format=p.get_format_from_width(2),
+        channels=channels,
+        rate=rate,
+        input=True,
+        output=False,
+        frames_per_buffer=chunk_val,
+    )
+    # Calibrate silence threshold based on background noise.
+    calibrate_secs = 3
+    silence_thresholds = []
+    for _ in range(int(rate / chunk_val * calibrate_secs)):
+        data = stream.read(chunk_val)
+        silence_thresholds.append(math.sqrt(abs(audioop.avg(data, 4))))
+
+    silence_threshold = sum(silence_thresholds)/len(silence_thresholds) * 2
+    print(f'Silence threshold set to {silence_threshold}')
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
+    return silence_threshold
+
 ### Let's go ###
-async def main():
+async def main(channels=1, rate=44100, chunk_val=1024, should_calibrate=False):
+
+    if should_calibrate:
+        silence_threshold = calibrate(channels=1, rate=44100, chunk_val=1024)
+    else:
+        silence_threshold = 400 
+        ## Once you're calibrated, set silence threshold to reduce startup time
+
     while(True):
-        os.system(f"rm {input_path}")
-        record(input_path)
+        if os.path.exists(input_path):
+            os.system(f"rm {input_path}")
+        record(input_path, silence_threshold, rate=rate, chunk=chunk_val, channels=channels)
         transcription = openai.Audio.transcribe("whisper-1", open(input_path, "rb"))
-        # print("Transcription:", transcription)
         conversation_history['user_messages'].append(transcription['text'])
         completion = async_get_completion(make_messages(conversation_history))
         collected_messages = []
@@ -191,7 +225,6 @@ async def main():
             for d in delimiters:
                 if d in msg_chunk_txt:
                     completed_sentence = current_sentence.split(d)[0] + d
-                    # print('completed_sentence: ', completed_sentence)
                     collected_sentences.append(completed_sentence)
                     if len(completed_sentence.strip()) > 0:
                         _output_path = output_path + str(chunk_idx)
@@ -207,6 +240,17 @@ async def main():
         conversation_history['elmo_messages'].append(text)
 
 if __name__ == '__main__':
+    CHANNELS = 1
+    rate = 44100
+    chunk = 1024
+
+    parser = argparse.ArgumentParser(description='perform calibration.')
+    parser.add_argument('--calibrate', action='store_true', default=False,
+                        help='perform calibration step')
+    args = parser.parse_args()
+
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    loop.run_until_complete(main(
+        channels=CHANNELS, rate=rate, chunk_val=chunk, should_calibrate = args.calibrate
+    ))
     loop.close()
