@@ -11,10 +11,14 @@ pip install -r requirements.txt
 python chat_out_loud.py
 ```
 
+If the recording is acting wonky (either hanging forever, or not starting), run `python chat_out_loud.py --calibrate` to find your ideal threshold. Then you can set it in the file and run it without the --calibrate flag.
+
+Only tested on Mac for now. Please LMK if you get it to work on Windows or Linux.
+
 ## Mods
 - By default it pretends to be Snoop Dogg. Feel free to change the system message to your liking. Or to change the GPT model from 3.5 to 4.
 
-- You may need to tweak the silence_threshold in the `record` function depending on the sensitivity of your mic and the environment you're in. The higher it is, the louder you need to talk, but if it's too low the background noise may keep it from ever turning off.
+- You can change the silence threshold (the higher it is, the louder you need to talk, but if it's too low the background noise may keep it from ever turning off), and how long it tolerates silence for (silence_limit, currently set to 1, shorter = snappier but more demanding).
 
 - You can choose different voices from charactr (throw a breakpoint and call `charactr_api.get_voices()` to see available, or swap in a different TTS system entirely if you want to clone your own voice or Snoop's voice or whatever.
 
@@ -31,5 +35,5 @@ python chat_out_loud.py
 
 
 
-#### Credits
-Written by [me](http://twitter.com/zswitten) and my buddy [Alec](https://github.com/thatperson42).
+#### Contributors note
+My buddy [Alec](https://github.com/thatperson42) wrote some of the code. This originated as a [hackathon project](https://twitter.com/zswitten/status/1632640801850425344) involving a stuffed teddy bear.
