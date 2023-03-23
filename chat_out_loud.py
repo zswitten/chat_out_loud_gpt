@@ -172,8 +172,8 @@ too cool to care. You speak with a lot of attitude.
 """
 
 def calibrate(channels=1, rate=44100, chunk_val=1024):
-    print('Please be silent so that we can calibrate the silence threshold of your environment...')
-    time.sleep(2)
+    print('Please be quiet for a few seconds; calibrating your base sound levels')
+    time.sleep(1)
     print('Calibration starting')
     p = pyaudio.PyAudio()
     stream = p.open(format=p.get_format_from_width(2),
@@ -183,7 +183,7 @@ def calibrate(channels=1, rate=44100, chunk_val=1024):
         output=False,
         frames_per_buffer=chunk_val,
     )
-    # Calibration step to determine the silence threshold based on the environment noise.
+    # Calibrate silence threshold based on background noise.
     calibrate_secs = 3
     silence_thresholds = []
     for _ in range(int(rate / chunk_val * calibrate_secs)):
@@ -199,15 +199,18 @@ def calibrate(channels=1, rate=44100, chunk_val=1024):
 
 ### Let's go ###
 async def main(channels=1, rate=44100, chunk_val=1024, should_calibrate=False):
-    silence_threshold = 400
+
     if should_calibrate:
         silence_threshold = calibrate(channels=1, rate=44100, chunk_val=1024)
+    else:
+        silence_threshold = 400 
+        ## Once you're calibrated, set silence threshold to reduce startup time
 
     while(True):
-        os.system(f"rm {input_path}")
+        if os.path.exists(input_path):
+            os.system(f"rm {input_path}")
         record(input_path, silence_threshold, rate=rate, chunk=chunk_val, channels=channels)
         transcription = openai.Audio.transcribe("whisper-1", open(input_path, "rb"))
-        # print("Transcription:", transcription)
         conversation_history['user_messages'].append(transcription['text'])
         completion = async_get_completion(make_messages(conversation_history))
         collected_messages = []
@@ -222,7 +225,6 @@ async def main(channels=1, rate=44100, chunk_val=1024, should_calibrate=False):
             for d in delimiters:
                 if d in msg_chunk_txt:
                     completed_sentence = current_sentence.split(d)[0] + d
-                    # print('completed_sentence: ', completed_sentence)
                     collected_sentences.append(completed_sentence)
                     if len(completed_sentence.strip()) > 0:
                         _output_path = output_path + str(chunk_idx)
@@ -238,11 +240,10 @@ async def main(channels=1, rate=44100, chunk_val=1024, should_calibrate=False):
         conversation_history['elmo_messages'].append(text)
 
 if __name__ == '__main__':
-    CHANNELS = 1 # CHANGE THIS
+    CHANNELS = 1
     rate = 44100
     chunk = 1024
 
-    # Create argument parser to allow user to specify calibration flag
     parser = argparse.ArgumentParser(description='perform calibration.')
     parser.add_argument('--calibrate', action='store_true', default=False,
                         help='perform calibration step')
